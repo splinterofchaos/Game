@@ -8,7 +8,7 @@
 
 GLenum init_gl( int w, int h )
 {
-    glClearColor( 1.0f, 1.0f, 0.0f, 0.0f );
+    glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -28,7 +28,11 @@ bool make_sdl_gl_window( int w, int h )
     return true;
 }
 
-#include <iostream>
+void update_screen()
+{
+    SDL_GL_SwapBuffers();
+    glClear( GL_COLOR_BUFFER_BIT );
+}
 
 int main()
 {
@@ -41,12 +45,10 @@ int main()
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
-    ScopeGuard quitSdl = scope_guard( SDL_Quit ); 
-    NOT_USED( quitSdl ); 
     make_sdl_gl_window( 1200, 900 );
+    ScopeGuard quitSdl = scope_guard( SDL_Quit ); NOT_USED( quitSdl ); 
 
-    Vector<int,3> v; 
-    std::fill( v.begin(), v.end(), 0 );
+    Vector<int,3> v; v.x(20); v.y(20); v.z(0);
     Tank tank(v);
 
     SDL_Event event;
@@ -64,12 +66,10 @@ int main()
         if( keyState[SDLK_ESCAPE] )
             quit = true;
 
-        glClear( GL_COLOR_BUFFER_BIT );
-
         tank.move( frameTime );
         tank.draw();
 
-        SDL_GL_SwapBuffers();
+        update_screen();
 
         frameStart = frameEnd;
         frameEnd = SDL_GetTicks();
