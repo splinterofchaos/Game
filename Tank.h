@@ -3,8 +3,11 @@
 
 #include "glpp.h"
 
-class Tank : public Actor
+class Tank : public Actor<float,2>
 {
+    typedef Actor<float,2> parrent;
+
+
     static const value_type WIDTH_OVER_2 = 0.5, LENGTH_OVER_2 = 0.25; 
     static const value_type SPEED = 0.01;
 
@@ -13,8 +16,11 @@ class Tank : public Actor
     static const value_type NSPEED = -0.01; // Negative SPEED.
 
 public:
+    typedef parrent::vector_type vector_type;
+    typedef parrent::value_type value_type;
+
     Tank( const vector_type& v, const value_type maxSpeed=999 )
-        : Actor( v, maxSpeed )
+        : parrent( v, maxSpeed )
     {
         scale = value_type(20);
     }
@@ -47,6 +53,7 @@ public:
         if( keyState[ SDLK_d ] )
             v.x(  SPEED );
 
-        Actor::move( quantum );
+        parrent::move( quantum );
     }
 };
+

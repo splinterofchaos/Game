@@ -2,13 +2,20 @@
 #include "math/Vector.h"
 #include "ScopeGuard.h"
 #include "Tank.h"
+#include "Terrain.h"
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 
+#if defined( __GNUC__ )
+    #include <tr1/shared_prt.h>
+#elif defined( __MSVC__ )
+    #error "Insert whatever you have to to use shared_ptr here!"
+#endif
+
 GLenum init_gl( int w, int h )
 {
-    glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+    glClearColor( 1.0f, 0.0f, 1.0f, 1.0f );
 
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -43,13 +50,21 @@ int main()
 
     bool quit = false;
 
+    
+
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
     make_sdl_gl_window( 1200, 900 );
     ScopeGuard quitSdl = scope_guard( SDL_Quit ); NOT_USED( quitSdl ); 
 
-    Vector<int,3> v; v.x(20); v.y(20); v.z(0);
+    Vector<int,2> v; v.x(20); v.y(20);
     Tank tank(v);
+
+    v.x(100); v.y(100);
+    Terrain terrain(v);
+    v.x(-10); v.y( 10); terrain.push_back( v );
+    v.x( 10); v.y( 10); terrain.push_back( v );
+    v.x( 0 ); v.y(-10); terrain.push_back( v );
 
     SDL_Event event;
 
@@ -68,6 +83,9 @@ int main()
 
         tank.move( frameTime );
         tank.draw();
+
+        terrain.move( frameTime );
+        terrain.draw();
 
         update_screen();
 
