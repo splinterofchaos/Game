@@ -9,11 +9,11 @@ class Tank : public Actor<float,2>
 
 
     static const value_type WIDTH_OVER_2 = 0.5, LENGTH_OVER_2 = 0.25; 
-    static const value_type SPEED = 0.01;
+    static const value_type SPEED = 0.11;
 
     // Needed to avoid odd error caught by g++ when -SPEED used.
     //  "[references to where -SPEED is used]: undefined reference to `Tank::SPEED'"
-    static const value_type NSPEED = -0.01; // Negative SPEED.
+    static const value_type NSPEED = -0.11; // Negative SPEED.
 
 public:
     typedef parrent::vector_type vector_type;
@@ -41,19 +41,32 @@ public:
 
     void move( int quantum )
     {
-        std::fill( v.begin(), v.end(), 0 );
+        std::fill( a.begin(), a.end(), 0 );
+
+        a.y( value_type(0.001) ); // Gravity.
 
         Uint8* keyState = SDL_GetKeyState( 0 );
         if( keyState[ SDLK_w ] )
-            v.y( NSPEED );
+            v.y( v.y() + NSPEED );
         if( keyState[ SDLK_s ] )
-            v.y(  SPEED );
+            v.y( v.y() +  SPEED );
         if( keyState[ SDLK_a ] )
-            v.x( NSPEED );
+            v.x( v.x() + NSPEED );
         if( keyState[ SDLK_d ] )
-            v.x(  SPEED );
+            v.x( v.x() +  SPEED );
 
         parrent::move( quantum );
+
+        // Erase the user inputs from v. This lets us keep momentum without
+        // the user altering it. 
+        if( keyState[ SDLK_w ] )
+            v.y( v.y() +  SPEED );
+        if( keyState[ SDLK_s ] )
+            v.y( v.y() + NSPEED );
+        if( keyState[ SDLK_a ] )
+            v.x( v.x() +  SPEED );
+        if( keyState[ SDLK_d ] )
+            v.x( v.x() + NSPEED );
     }
 };
 

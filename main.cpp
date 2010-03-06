@@ -7,11 +7,17 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 
+// include shared ptr.
 #if defined( __GNUC__ )
-    #include <tr1/shared_prt.h>
+    // tr1/memory is required to include tr1/shared_ptr.h... Dunno why.
+    #include <tr1/memory> 
+    #include <tr1/shared_ptr.h>
 #elif defined( __MSVC__ )
     #error "Insert whatever you have to to use shared_ptr here!"
 #endif
+
+#include <algorithm> // For for_each().
+#include <functional> // For mem_fun_ptr.
 
 GLenum init_gl( int w, int h )
 {
@@ -41,6 +47,22 @@ void update_screen()
     glClear( GL_COLOR_BUFFER_BIT );
 }
 
+// Like for_each, but acknowledging containers using pointers that need to be
+// dereferenced before calling f. I thought of making a Dereference object to
+// be super generic...but this is MUCH less work.
+template< typename Iterator, typename F >
+void for_each_ptr( Iterator begin, Iterator end, F f )
+{
+    for( ; begin != end; begin++ )
+        f( **begin );
+}
+
+template< typename VectorT >
+bool collision( std::vector<VectorT> a, std::vector<VectorT> b )
+{
+    
+}
+
 int main()
 {
     // Portably suppresses unused variable compiler warnings.
@@ -50,21 +72,26 @@ int main()
 
     bool quit = false;
 
-    
+    typedef std::tr1::shared_ptr< Actor<float,2> > SmartPointer;
+    typedef std::vector< SmartPointer > ActorList;
+    ActorList list;
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
-    make_sdl_gl_window( 1200, 900 );
+    make_sdl_gl_window( 1200, 800 );
     ScopeGuard quitSdl = scope_guard( SDL_Quit ); NOT_USED( quitSdl ); 
 
     Vector<int,2> v; v.x(20); v.y(20);
-    Tank tank(v);
+    list.push_back( SmartPointer( new Tank(v) ) );
 
-    v.x(100); v.y(100);
-    Terrain terrain(v);
-    v.x(-10); v.y( 10); terrain.push_back( v );
-    v.x( 10); v.y( 10); terrain.push_back( v );
-    v.x( 0 ); v.y(-10); terrain.push_back( v );
+    v.x(0); v.y(800);
+    Terrain* tmp = new Terrain( v );
+    v.x(   0 ); v.y(    0 ); tmp->push_back( v );
+    v.x(   0 ); v.y( -100 ); tmp->push_back( v );
+    v.x( 200 ); v.y( -200 ); tmp->push_back( v );
+    v.x( 500 ); v.y( -150 ); tmp->push_back( v );
+    v.x( 500 ); v.y(    0 ); tmp->push_back( v );
+    list.push_back( SmartPointer(tmp) );
 
     SDL_Event event;
 
@@ -81,11 +108,16 @@ int main()
         if( keyState[SDLK_ESCAPE] )
             quit = true;
 
-        tank.move( frameTime );
-        tank.draw();
+        // TODO: Fixed time-step. 
+        for_each_ptr ( 
+            list.begin(), list.end(), 
+            std::bind2nd( std::mem_fun_ref( &Actor<float,2>::move ), frameTime )
+        );
 
-        terrain.move( frameTime );
-        terrain.draw();
+        for_each_ptr ( 
+            list.begin(), list.end(), 
+            std::mem_fun_ref( &Actor<float,2>::draw ) 
+        );
 
         update_screen();
 
