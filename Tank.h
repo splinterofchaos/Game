@@ -43,7 +43,7 @@ public:
     {
         std::fill( a.begin(), a.end(), 0 );
 
-        a.y( value_type(0.001) ); // Gravity.
+        //a.y( value_type(0.001) ); // Gravity.
 
         Uint8* keyState = SDL_GetKeyState( 0 );
         if( keyState[ SDLK_w ] )
@@ -67,6 +67,33 @@ public:
             v.x( v.x() +  SPEED );
         if( keyState[ SDLK_d ] )
             v.x( v.x() + NSPEED );
+    }
+
+    std::vector< vector_type > collision_nodes()
+    {
+        std::vector< vector_type > nodes;
+        vector_type tmp;
+
+        float w_over_2 = WIDTH_OVER_2 * scale;
+        float l_over_2 = LENGTH_OVER_2 * scale;
+
+        tmp.x( WIDTH_OVER_2*scale ); tmp.y( LENGTH_OVER_2*scale );
+        nodes.push_back( tmp + s );
+
+        tmp.x( -w_over_2 ); tmp.y( LENGTH_OVER_2*scale );
+        nodes.push_back( tmp + s );
+
+        tmp.x( -w_over_2 ); tmp.y( -l_over_2 );
+        nodes.push_back( tmp + s );
+
+        tmp.x( WIDTH_OVER_2*scale ); tmp.y( -l_over_2 );
+        nodes.push_back( tmp + s );
+
+        return nodes;
+    }
+
+    void collide()
+    {
     }
 };
 

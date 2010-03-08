@@ -3,6 +3,7 @@
 #include "ScopeGuard.h"
 #include "Tank.h"
 #include "Terrain.h"
+#include "Collision.h"
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -57,18 +58,14 @@ void for_each_ptr( Iterator begin, Iterator end, F f )
         f( **begin );
 }
 
-template< typename VectorT >
-bool collision( std::vector<VectorT> a, std::vector<VectorT> b )
-{
-    
-}
+#include <iostream>
 
 int main()
 {
     // Portably suppresses unused variable compiler warnings.
     #define NOT_USED(var) ((void)(var))
 
-    const int MAX_FRAME_TIME = 1000;
+    const int MAX_FRAME_TIME = 10;
 
     bool quit = false;
 
@@ -118,6 +115,16 @@ int main()
             list.begin(), list.end(), 
             std::mem_fun_ref( &Actor<float,2>::draw ) 
         );
+
+        ActorList::iterator it1=list.begin(), it2;
+        for( ; it1 != list.end(); it1++ )
+        {
+            for( it2 = it1; it2 != list.end(); it2++ )
+            {
+                if( collision( (**it1).collision_nodes(), (**it2).collision_nodes() ) )
+                    std::cout << "HAHAHAHA!";
+            }
+        }
 
         update_screen();
 

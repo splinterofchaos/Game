@@ -55,4 +55,16 @@ public:
 
         glLoadIdentity();
     }
+
+    std::vector< vector_type > collision_nodes()
+    {
+        std::vector< vector_type > cnodes;
+        for( NodeList::iterator it=nodes.begin(); it != nodes.end(); it++ )
+            cnodes.push_back( s + *it );
+        return cnodes;
+    }
+
+    void collide()
+    {
+    }
 };
