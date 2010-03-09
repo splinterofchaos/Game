@@ -16,12 +16,14 @@ class Tank : virtual public Actor<float,2>, virtual public Rectangle<float>
     //  "[references to where -SPEED is used]: undefined reference to `Tank::SPEED'"
     static const value_type NSPEED = -0.11; // Negative SPEED.
 
+    bool onSurrface;
+
 public:
     typedef parent::vector_type vector_type;
     typedef parent::value_type value_type;
 
     Tank( const vector_type& v, const value_type maxSpeed=999 )
-        : parent( v, maxSpeed )
+        : parent( v, maxSpeed ), onSurrface(false)
     {
         scale = value_type(20);
     }
@@ -101,9 +103,16 @@ public:
         else
             other = c.victim1;
 
-        // OK, i know this isn't the BEST way to react to a collision,
-        // but it's easy and works. TODO: improve on this?
-        s = previousS;
+        // TODO: This works, but when around a corner, the tank can just over it.
+        // NOT WANTED.
+        if( previousS.y()+half_length() < other->s.y()-half_length() )
+            s.y( s.y() - c.intersection.y() );
+        else if( previousS.y()-half_length() > other->s.y()+half_length() )
+            s.y( s.y() + c.intersection.y() );
+        if( previousS.x()-half_width() < other->s.x()+half_width() )
+            s.x( s.x() - c.intersection.x() );
+        else if( previousS.x()+half_width() > other->s.x()-half_width() )
+            s.x( s.x() + c.intersection.x() );
     }
 
     // Rectangle's functions:

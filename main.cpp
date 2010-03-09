@@ -81,7 +81,7 @@ int main()
     make_sdl_gl_window( 1200, 800 );
     ScopeGuard quitSdl = scope_guard( SDL_Quit ); NOT_USED( quitSdl ); 
 
-    Vector<int,2> v; v.x(250); v.y(500-30);
+    Vector<int,2> v; v.x(50); v.y(300);
     list.push_back( SmartPointer( new Tank( v) ) );
 
     v.x(60); v.y(500-30);
@@ -114,8 +114,9 @@ int main()
             std::mem_fun_ref( &Actor<float,2>::draw ) 
         );
 
+        // Do collisions.
         ActorList::iterator it1=list.begin(), it2;
-        for( ; it1 != list.end(); it1++ )
+        for( ; it1 != list.end()-1; it1++ )
         {
             for( it2 = it1+1; it2 != list.end(); it2++ )
             {
@@ -124,11 +125,6 @@ int main()
                 {
                     (**it1).collide( c );
                     (**it2).collide( c );
-                    cout << "HAHA!\n";
-                }
-                else
-                {
-                    cout << "nonono\n";
                 }
             }
         }
