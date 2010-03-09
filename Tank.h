@@ -1,12 +1,13 @@
 
-#include "Actor.h"
-
+#include "Rectangle.h"
 #include "glpp.h"
 
-class Tank : public Actor<float,2>
-{
-    typedef Actor<float,2> parrent;
+#include <cmath> // for abs.
 
+class Tank : virtual public Actor<float,2>, virtual public Rectangle<float>
+{
+    // Rectangle is not recognized as a parent because it isn't, functionally.
+    typedef Actor<float,2> parent; 
 
     static const value_type WIDTH_OVER_2 = 0.5, LENGTH_OVER_2 = 0.25; 
     static const value_type SPEED = 0.11;
@@ -16,11 +17,11 @@ class Tank : public Actor<float,2>
     static const value_type NSPEED = -0.11; // Negative SPEED.
 
 public:
-    typedef parrent::vector_type vector_type;
-    typedef parrent::value_type value_type;
+    typedef parent::vector_type vector_type;
+    typedef parent::value_type value_type;
 
     Tank( const vector_type& v, const value_type maxSpeed=999 )
-        : parrent( v, maxSpeed )
+        : parent( v, maxSpeed )
     {
         scale = value_type(20);
     }
@@ -55,7 +56,7 @@ public:
         if( keyState[ SDLK_d ] )
             v.x( v.x() +  SPEED );
 
-        parrent::move( quantum );
+        parent::move( quantum );
 
         // Erase the user inputs from v. This lets us keep momentum without
         // the user altering it. 
@@ -92,8 +93,21 @@ public:
         return nodes;
     }
 
-    void collide()
+    void collide( Collision c )
     {
+        Rectangle<float>* other;
+        if( c.victim1 == this )
+            other = c.victim2;
+        else
+            other = c.victim1;
+
+        // OK, i know this isn't the BEST way to react to a collision,
+        // but it's easy and works. TODO: improve on this?
+        s = previousS;
     }
+
+    // Rectangle's functions:
+    value_type half_width()  const { return WIDTH_OVER_2  * scale; }
+    value_type half_length() const { return LENGTH_OVER_2 * scale; }
 };
 

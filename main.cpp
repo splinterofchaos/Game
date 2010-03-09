@@ -1,9 +1,14 @@
 
+#include <iostream>
+using namespace std;
+
 #include "math/Vector.h"
 #include "ScopeGuard.h"
+#include "Collision.h"
+
+#include "Actor.h"
 #include "Tank.h"
 #include "Terrain.h"
-#include "Collision.h"
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -58,8 +63,6 @@ void for_each_ptr( Iterator begin, Iterator end, F f )
         f( **begin );
 }
 
-#include <iostream>
-
 int main()
 {
     // Portably suppresses unused variable compiler warnings.
@@ -69,7 +72,7 @@ int main()
 
     bool quit = false;
 
-    typedef std::tr1::shared_ptr< Actor<float,2> > SmartPointer;
+    typedef std::tr1::shared_ptr< Rectangle<float> > SmartPointer;
     typedef std::vector< SmartPointer > ActorList;
     ActorList list;
 
@@ -78,16 +81,11 @@ int main()
     make_sdl_gl_window( 1200, 800 );
     ScopeGuard quitSdl = scope_guard( SDL_Quit ); NOT_USED( quitSdl ); 
 
-    Vector<int,2> v; v.x(20); v.y(20);
-    list.push_back( SmartPointer( new Tank(v) ) );
+    Vector<int,2> v; v.x(250); v.y(500-30);
+    list.push_back( SmartPointer( new Tank( v) ) );
 
-    v.x(0); v.y(800);
-    Terrain* tmp = new Terrain( v );
-    v.x(   0 ); v.y(    0 ); tmp->push_back( v );
-    v.x(   0 ); v.y( -100 ); tmp->push_back( v );
-    v.x( 200 ); v.y( -200 ); tmp->push_back( v );
-    v.x( 500 ); v.y( -150 ); tmp->push_back( v );
-    v.x( 500 ); v.y(    0 ); tmp->push_back( v );
+    v.x(60); v.y(500-30);
+    Terrain* tmp = new Terrain( v, 30 );
     list.push_back( SmartPointer(tmp) );
 
     SDL_Event event;
@@ -119,10 +117,19 @@ int main()
         ActorList::iterator it1=list.begin(), it2;
         for( ; it1 != list.end(); it1++ )
         {
-            for( it2 = it1; it2 != list.end(); it2++ )
+            for( it2 = it1+1; it2 != list.end(); it2++ )
             {
-                if( collision( (**it1).collision_nodes(), (**it2).collision_nodes() ) )
-                    std::cout << "HAHAHAHA!";
+                Collision c = rectangle_collision( **it1, **it2 );
+                if( c.isOccuring )
+                {
+                    (**it1).collide( c );
+                    (**it2).collide( c );
+                    cout << "HAHA!\n";
+                }
+                else
+                {
+                    cout << "nonono\n";
+                }
             }
         }
 

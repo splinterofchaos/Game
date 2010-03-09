@@ -3,37 +3,19 @@
 
 #include <vector>
 
-class Terrain : public Actor<float,2>
+class Terrain : virtual public Actor<float,2>, virtual public Rectangle<float> 
 {
-    typedef Actor<float,2> parrent;
+    typedef Actor<float,2> parent;
 
-    typedef parrent::vector_type vector_type;
-    typedef parrent::value_type  value_type;
-
-    // Represent the terrain as a list of nodes creating a polygon.
-    typedef std::vector< vector_type > NodeList;
-    NodeList nodes; 
-
-    // TODO: Think of something more interesting than monotone terrains. ;p
-    Vector< value_type, 4 > col; // The color of our terrain.
+    value_type size_over_2;
 
 public:
-    Terrain( const vector_type& pos )
-        : parrent( pos )
-    {
+    typedef parent::vector_type vector_type;
+    typedef parent::value_type  value_type;
 
-    }
-
-    Terrain( const vector_type& pos, const std::vector< vector_type >& initNodes )
-        : parrent( pos )
+    Terrain( const vector_type& pos, value_type size_over_2 )
+        : parent( pos ), size_over_2( size_over_2 )
     {
-        nodes = initNodes;
-    }
-
-    // Add a new node to the terrain.
-    void push_back( const vector_type& v )
-    {
-        nodes.push_back( v );
     }
 
     // This is just a stub, for now. 
@@ -44,13 +26,10 @@ public:
 
     void draw()
     {
-        // TODO: WHY THE HELL DO I NEED THIS parrent:: TO ACCESS s!?
-        //       s IS A PUBLIC VARIABLE!!!
-        glpp::translate( parrent::s.x(), parrent::s.y(), 0 );
+        glpp::translate( s.x(), s.y(), 0 );
 
         glBegin( GL_POLYGON );
-            for( NodeList::iterator it=nodes.begin(); it != nodes.end(); it++ )
-                glpp::vertex( it->data() );
+            draw_square( size_over_2 );
         glEnd();
 
         glLoadIdentity();
@@ -58,13 +37,16 @@ public:
 
     std::vector< vector_type > collision_nodes()
     {
-        std::vector< vector_type > cnodes;
-        for( NodeList::iterator it=nodes.begin(); it != nodes.end(); it++ )
-            cnodes.push_back( s + *it );
-        return cnodes;
+        return std::vector<vector_type>(); // Obvious stub?
     }
 
-    void collide()
+    void collide( Collision c )
     {
+        // Do nothing.
     }
+
+    // Rectangle's functions:
+    value_type half_length() const { return size_over_2; }
+    value_type half_width() const { return size_over_2; }
+
 };

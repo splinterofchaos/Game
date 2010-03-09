@@ -6,11 +6,26 @@
 // TODO: OK, 2D geometry collision is really difficult! Let's try just doing box collision.
 
 #include "math/Vector.h"
+#include "Rectangle.h"
+
 #include <algorithm> // for max and min.
+#include <cmath>     // for abs.
+
+#pragma once
 
 // TODO: Write this TODO statement.
 struct Collision
 {
+    bool isOccuring; // True if this represents a collision that IS occurring.
+
+    Rectangle<float> *victim1, *victim2;
+
+    Vector<float,2> intersection; // Represents the intersection of vic1 to 2.
+
+    Collision( Rectangle<float>* a1, Rectangle<float>* a2 )
+        : victim1( a1 ), victim2( a2 )
+    {
+    }
 };
 
 template< typename VectorT >
@@ -30,18 +45,16 @@ bool line_line_collision( VectorT line1Start, VectorT line1End,
     T a2 = tmp.y() / tmp.x();
     T b2 = line2Start.y();
 
-    // a_1*x + b_1 = a_2*x + b_2
-    // a_1*x - a_2*x = b_2 - b_1
+    //              y1 = y2
+    //     a_1*x + b_1 = a_2*x + b_2
+    //   a_1*x - a_2*x = b_2 - b_1
     // x ( a_1 - a_2 ) = b_2 - b_1
-    // x = (b_2-b_1) / (a_1-a_2)
+    // x = ( b_2 - b_1 ) / ( a_1 - a_2 )
     T x = (b2 - b1) / (a1 - a2);
 
     // Assuming a collision, either line will have x within its range.
-    if( x > line1Start.x() && x < line1End.x() )
-        return true;
-    if( x < line1Start.x() && x > line1End.x() )
-        return true;
-    return false;
+    return ( x > line1Start.x() && x < line1End.x() ) || 
+           ( x < line1Start.x() && x > line1End.x() );
 }
 
 template< typename NodeList >
@@ -55,8 +68,46 @@ bool collision( NodeList a, NodeList b )
     return false;
 }
 
-template< typename VectorT, typename VecList >
-void project_polygon( VectorT axis, VecList list )
+Collision rectangle_collision( Rectangle<float>& A, Rectangle<float>& B )
 {
+    Collision c( &A, &B );
+    c.isOccuring = true;
 
+    //The sides of the rectangles
+    float leftA, leftB;
+    float rightA, rightB;
+    float topA, topB;
+    float bottomA, bottomB;
+
+    //Calculate the sides of rect A
+    leftA = A.s.x() - A.half_width();
+    rightA = A.s.x() + A.half_width();
+    topA = A.s.y() - A.half_length();
+    bottomA = A.s.y() + A.half_length();
+        
+    //Calculate the sides of rect B
+    leftB = B.s.x() - B.half_width();
+    rightB = B.s.x() + B.half_width();
+    topB = B.s.y() - B.half_length();
+    bottomB = B.s.y() + B.half_length();
+    
+    if( bottomA <= topB )
+        c.isOccuring = false;
+    else if( topA >= bottomB )
+        c.isOccuring = false;
+    else // x axis intersects:
+    {
+        c.intersection.x( std::abs(rightB - leftA) );
+    }
+
+    if( rightA <= leftB )
+        c.isOccuring = false;
+    else if( leftA >= rightB )
+        c.isOccuring = false;
+    else
+    {
+        c.intersection.y( std::abs(topB - bottomA) );
+    }
+    
+    return c;
 }
