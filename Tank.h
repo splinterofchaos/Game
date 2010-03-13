@@ -23,7 +23,6 @@ public:
 
     Terrain* surface;
     
-public:
     typedef parent::vector_type vector_type;
     typedef parent::value_type  value_type;
 
@@ -47,45 +46,12 @@ public:
         glLoadIdentity();
     }
 
-    int motion_lookup( int dir )
-    {
-        if( dir == 4 || dir == 6 )
-            return 0;
-         else if( dir == 8 || dir == 2 )
-             return 1;
-    }
-
-    void move_left( bool start )
-    {
-        if( start )
-            v.x( v.x() + NSPEED );
-        else
-            v.x( v.x() +  SPEED );
-    }
-
-    void move_right( bool start )
-    {
-        if( start )
-            v.x( v.x() +  SPEED );
-        else
-            v.x( v.x() + NSPEED );
-    }
-
     void move_along_x( bool start, value_type speed )
     {
         if( start )
             v.x( v.x() + speed );
         else
             v.x( v.x() - speed );
-    }
-
-    void jump()
-    {
-        if( surface ) {
-            v.y( v.y() + JUMP_SPEED );
-            s.y( s.y() - TOUCHING_RANGE );
-            surface = 0;
-        }
     }
 
     void move( int quantum )
@@ -166,3 +132,27 @@ public:
     value_type half_length() const { return LENGTH_OVER_2 * scale; }
 };
 
+void move_left( Tank* tank, bool start )
+{
+    if( start )
+        tank->v.x( tank->v.x() + Tank::NSPEED );
+    else
+        tank->v.x( tank->v.x() + Tank:: SPEED );
+}
+
+void move_right( Tank* tank, bool start )
+{
+    if( start )
+        tank->v.x( tank->v.x() + Tank:: SPEED );
+    else
+        tank->v.x( tank->v.x() + Tank::NSPEED );
+}
+
+void jump( Tank* tank )
+{
+    if( tank->surface ) {
+        tank->v.y( tank->v.y() + Tank::JUMP_SPEED );
+        tank->s.y( tank->s.y() - Tank::TOUCHING_RANGE );
+        tank->surface = 0;
+    }
+}

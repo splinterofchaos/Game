@@ -78,10 +78,9 @@ struct Keyboard
 Uint8* Keyboard::keyState = 0;
 
 template< typename P, typename F >
-class BasicControllerButton : public Controller
+struct BasicControllerButton : public Controller
 {
-public:
-    typedef P Pointer;
+    typedef P      Pointer;
     typedef size_t size_type;
 
     size_type key;
@@ -103,17 +102,22 @@ class PressedButton : public BasicControllerButton< P, F >
 
 public:
     PressedButton( size_t key, P target, F f )
-        : parent(key,target,f), isPressed( false )
+        : parent( key, target, f ), isPressed( false )
     {
     }
 
     bool check_input()
     {
-        if( !isPressed && Keyboard::keyState[ parent::key ] ) {
-            isPressed = true;
-            return true;
-        } else if( isPressed && !Keyboard::keyState[ parent::key ] ) {
-            isPressed = false;
+        // Consider revising to meet 1-exit-point principle, or keep it?
+        //if( !isPressed && Keyboard::keyState[ parent::key ] ) {
+        //    isPressed = true;
+        //    return true;
+        //} else if( isPressed && !Keyboard::keyState[ parent::key ] ) {
+        //    isPressed = false;
+        //    return true;
+        //}
+        if( isPressed != Keyboard::keyState[ parent::key ] ) {
+            isPressed = ! isPressed;
             return true;
         }
 
@@ -122,7 +126,7 @@ public:
 
     void do_input()
     {
-        (parent::target->*parent::f)( isPressed );
+        parent::f( parent::target, isPressed );
     }
 };
 
@@ -135,7 +139,7 @@ public:
     typedef size_t size_type;
     typedef P   Pointer;
 
-    TappedButton( size_t key, Pointer target, F f )
+    TappedButton( size_type key, Pointer target, F f )
         : parent( key, target, f )
     {
     }
@@ -147,7 +151,7 @@ public:
 
     void do_input()
     {
-        (parent::target->*parent::f)();
+        parent::f( parent::target );
     }
 };
 
@@ -199,13 +203,13 @@ int main()
     // as needing a pointer to player for each object, is all redundant,
     // but it works pretty neatly, so should one really complain?
     controlers.push_back( ControllerPointer ( 
-        new_pressed_button( SDLK_a, player, &Tank::move_left ) 
+        new_pressed_button( SDLK_a, player, &move_left ) 
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_pressed_button( SDLK_d, player, &Tank::move_right )
+        new_pressed_button( SDLK_d, player, &move_right )
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_tapped_button( SDLK_w, player, &Tank::jump )
+        new_tapped_button( SDLK_w, player, &jump )
     ) );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
