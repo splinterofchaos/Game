@@ -55,7 +55,6 @@ public:
 
     bool check_input()
     {
-        // Consider revising to meet 1-exit-point principle, or keep it?
         if( isPressed != Keyboard::keyState[ parent::key ] ) {
             isPressed = ! isPressed;
             return true;
