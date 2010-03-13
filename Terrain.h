@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#pragma once
+
 class Terrain : virtual public Actor<float,2>, virtual public Rectangle<float> 
 {
     typedef Actor<float,2> parent;
@@ -16,6 +18,7 @@ public:
     Terrain( const vector_type& pos, value_type size_over_2 )
         : parent( pos ), size_over_2( size_over_2 )
     {
+        isSurface = true;
     }
 
     // This is just a stub, for now. 

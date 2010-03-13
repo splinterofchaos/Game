@@ -1,5 +1,6 @@
 
 #include "Rectangle.h"
+#include "Terrain.h"
 #include "glpp.h"
 
 #include <cmath> // for abs.
@@ -11,21 +12,22 @@ class Tank : virtual public Actor<float,2>, virtual public Rectangle<float>
 
     static const value_type WIDTH_OVER_2 = 0.5, LENGTH_OVER_2 = 0.25; 
     static const value_type SPEED = 0.11;
+    static const value_type JUMP_SPEED = -0.11;
 
     // Needed to avoid odd error caught by g++ when -SPEED used.
     //  "[references to where -SPEED is used]: undefined reference to `Tank::SPEED'"
     static const value_type NSPEED = -0.11; // Negative SPEED.
 
-    bool onSurrface;
-
+    Terrain* surface;
+    
 public:
     typedef parent::vector_type vector_type;
     typedef parent::value_type value_type;
 
     Tank( const vector_type& v, const value_type maxSpeed=999 )
-        : parent( v, maxSpeed ), onSurrface(false)
+        : parent( v, maxSpeed ), surface( 0 )
     {
-        scale = value_type(20);
+        scale = value_type( 20 );
     }
 
     void draw()
@@ -42,34 +44,53 @@ public:
         glLoadIdentity();
     }
 
+    void move_left( bool flip )
+    {
+        if( flip )
+            v.x( v.x() + NSPEED );
+        else
+            v.x( v.x() +  SPEED );
+    }
+
     void move( int quantum )
     {
-        std::fill( a.begin(), a.end(), 0 );
+        const float TOUCHING_RANGE = 0.001;
 
-        //a.y( value_type(0.001) ); // Gravity.
-
+        if( surface ) {
+            if( surface->s.x()+surface->half_width() < s.x() - half_width() ||
+                surface->s.x()-surface->half_width() > s.x() + half_width() )
+                surface = 0;
+            else if( (surface->s.y()-s.y())-(surface->half_length()+half_length()) > TOUCHING_RANGE )
+                surface = 0;
+        }
+             
         Uint8* keyState = SDL_GetKeyState( 0 );
-        if( keyState[ SDLK_w ] )
-            v.y( v.y() + NSPEED );
-        if( keyState[ SDLK_s ] )
-            v.y( v.y() +  SPEED );
         if( keyState[ SDLK_a ] )
             v.x( v.x() + NSPEED );
         if( keyState[ SDLK_d ] )
             v.x( v.x() +  SPEED );
+
+        if( surface ) {
+            if( keyState[ SDLK_w ] ) {
+                v.y( v.y() + JUMP_SPEED );
+                s.y( s.y() - TOUCHING_RANGE );
+                surface = 0;
+            }
+        } else {
+            a.y( value_type(0.0001) ); // Gravity.
+        }
 
         parent::move( quantum );
 
         // Erase the user inputs from v. This lets us keep momentum without
         // the user altering it. 
-        if( keyState[ SDLK_w ] )
-            v.y( v.y() +  SPEED );
-        if( keyState[ SDLK_s ] )
-            v.y( v.y() + NSPEED );
         if( keyState[ SDLK_a ] )
             v.x( v.x() +  SPEED );
         if( keyState[ SDLK_d ] )
             v.x( v.x() + NSPEED );
+
+         //if( surface && keyState[ SDLK_w ] )
+         //    v.y( v.y() - JUMP_SPEED );
     }
 
     std::vector< vector_type > collision_nodes()
@@ -103,16 +124,30 @@ public:
         else
             other = c.victim1;
 
-        // TODO: This works, but when around a corner, the tank can just over it.
-        // NOT WANTED.
-        if( previousS.y()+half_length() < other->s.y()-half_length() )
-            s.y( s.y() - c.intersection.y() );
-        else if( previousS.y()-half_length() > other->s.y()+half_length() )
-            s.y( s.y() + c.intersection.y() );
-        if( previousS.x()-half_width() < other->s.x()+half_width() )
-            s.x( s.x() - c.intersection.x() );
-        else if( previousS.x()+half_width() > other->s.x()-half_width() )
-            s.x( s.x() + c.intersection.x() );
+        // TODO: Not use reinterpret_cast?
+        if( other->isSurface )
+            surface = reinterpret_cast<Terrain*>( other );
+
+        if( c.intersection.y() < half_length() )
+        {
+            if( previousS.y() < other->s.y() ) {
+                s.y( s.y() - c.intersection.y() );
+                v.y( 0 );
+            } else if( previousS.y() > other->s.y() ) {
+                s.y( s.y() + c.intersection.y() );
+                v.y( 0 );
+            }
+        }
+        if( c.intersection.x() < half_width() )
+        {
+            if( previousS.x() < other->s.x() ) {
+                s.x( s.x() - c.intersection.x() );
+                v.x( 0 );
+            } else if( previousS.x() > other->s.x() ) {
+                s.x( s.x() + c.intersection.x() );
+                v.x( 0 );
+            }
+        }
     }
 
     // Rectangle's functions:
