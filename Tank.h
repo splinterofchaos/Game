@@ -7,12 +7,15 @@
 
 class Tank : virtual public Actor<float,2>, virtual public Rectangle<float>
 {
+public:
     // Rectangle is not recognized as a parent because it isn't, functionally.
     typedef Actor<float,2> parent; 
 
     static const value_type WIDTH_OVER_2 = 0.5, LENGTH_OVER_2 = 0.25; 
     static const value_type SPEED = 0.11;
     static const value_type JUMP_SPEED = -0.11;
+    static const value_type TOUCHING_RANGE = 0.001;
+
 
     // Needed to avoid odd error caught by g++ when -SPEED used.
     //  "[references to where -SPEED is used]: undefined reference to `Tank::SPEED'"
@@ -22,7 +25,7 @@ class Tank : virtual public Actor<float,2>, virtual public Rectangle<float>
     
 public:
     typedef parent::vector_type vector_type;
-    typedef parent::value_type value_type;
+    typedef parent::value_type  value_type;
 
     Tank( const vector_type& v, const value_type maxSpeed=999 )
         : parent( v, maxSpeed ), surface( 0 )
@@ -44,18 +47,49 @@ public:
         glLoadIdentity();
     }
 
-    void move_left( bool flip )
+    int motion_lookup( int dir )
     {
-        if( flip )
+        if( dir == 4 || dir == 6 )
+            return 0;
+         else if( dir == 8 || dir == 2 )
+             return 1;
+    }
+
+    void move_left( bool start )
+    {
+        if( start )
             v.x( v.x() + NSPEED );
         else
             v.x( v.x() +  SPEED );
     }
 
+    void move_right( bool start )
+    {
+        if( start )
+            v.x( v.x() +  SPEED );
+        else
+            v.x( v.x() + NSPEED );
+    }
+
+    void move_along_x( bool start, value_type speed )
+    {
+        if( start )
+            v.x( v.x() + speed );
+        else
+            v.x( v.x() - speed );
+    }
+
+    void jump()
+    {
+        if( surface ) {
+            v.y( v.y() + JUMP_SPEED );
+            s.y( s.y() - TOUCHING_RANGE );
+            surface = 0;
+        }
+    }
+
     void move( int quantum )
     {
-        const float TOUCHING_RANGE = 0.001;
-
         if( surface ) {
             if( surface->s.x()+surface->half_width() < s.x() - half_width() ||
                 surface->s.x()-surface->half_width() > s.x() + half_width() )
@@ -64,33 +98,10 @@ public:
                 surface = 0;
         }
              
-        Uint8* keyState = SDL_GetKeyState( 0 );
-        if( keyState[ SDLK_a ] )
-            v.x( v.x() + NSPEED );
-        if( keyState[ SDLK_d ] )
-            v.x( v.x() +  SPEED );
-
-        if( surface ) {
-            if( keyState[ SDLK_w ] ) {
-                v.y( v.y() + JUMP_SPEED );
-                s.y( s.y() - TOUCHING_RANGE );
-                surface = 0;
-            }
-        } else {
+        if( ! surface )
             a.y( value_type(0.0001) ); // Gravity.
-        }
 
         parent::move( quantum );
-
-        // Erase the user inputs from v. This lets us keep momentum without
-        // the user altering it. 
-        if( keyState[ SDLK_a ] )
-            v.x( v.x() +  SPEED );
-        if( keyState[ SDLK_d ] )
-            v.x( v.x() + NSPEED );
-
-         //if( surface && keyState[ SDLK_w ] )
-         //    v.y( v.y() - JUMP_SPEED );
     }
 
     std::vector< vector_type > collision_nodes()
@@ -124,15 +135,15 @@ public:
         else
             other = c.victim1;
 
-        // TODO: Not use reinterpret_cast?
-        if( other->isSurface )
-            surface = reinterpret_cast<Terrain*>( other );
-
         if( c.intersection.y() < half_length() )
         {
             if( previousS.y() < other->s.y() ) {
                 s.y( s.y() - c.intersection.y() );
                 v.y( 0 );
+                
+                // TODO: Not use reinterpret_cast?
+                if( other->isSurface )
+                    surface = reinterpret_cast<Terrain*>( other );
             } else if( previousS.y() > other->s.y() ) {
                 s.y( s.y() + c.intersection.y() );
                 v.y( 0 );

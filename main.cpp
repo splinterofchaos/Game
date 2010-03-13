@@ -5,6 +5,7 @@ using namespace std;
 #include "math/Vector.h"
 #include "ScopeGuard.h"
 #include "Collision.h"
+#include "functional_plus.h"
 
 #include "Actor.h"
 #include "Tank.h"
@@ -53,16 +54,6 @@ void update_screen()
     glClear( GL_COLOR_BUFFER_BIT );
 }
 
-// Like for_each, but acknowledging containers using pointers that need to be
-// dereferenced before calling f. I thought of making a Dereference object to
-// be super generic...but this is MUCH less work.
-template< typename Iterator, typename F >
-void for_each_ptr( Iterator begin, Iterator end, F f )
-{
-    for( ; begin != end; begin++ )
-        f( **begin );
-}
-
 struct Controller
 {
     virtual void do_input() = 0;
@@ -87,7 +78,7 @@ struct Keyboard
 Uint8* Keyboard::keyState = 0;
 
 template< typename P, typename F >
-class KeyboardButton : public Controller
+class BasicControllerButton : public Controller
 {
 public:
     typedef P Pointer;
@@ -95,36 +86,25 @@ public:
 
     size_type key;
     Pointer target;
-    F  f;
+    F f;
 
-    KeyboardButton( size_type key, Pointer target, F f )
+    BasicControllerButton( size_type key, Pointer target, F f )
         : key( key ), target( target ), f( f )
     {
-    }
-
-    bool check_input()
-    {
-        return Keyboard::keyState[ key ];
-    }
-
-    void do_input()
-    {
-        (target->*f)();
     }
 };
 
 template< typename P, typename F > 
-class PressedButton : public KeyboardButton<P,F>
+class PressedButton : public BasicControllerButton< P, F >
 {
-    typedef KeyboardButton<P,F> parent;
+    typedef BasicControllerButton< P, F > parent;
 
     bool isPressed;
 
 public:
     PressedButton( size_t key, P target, F f )
-        : parent( key, target, f )
+        : parent(key,target,f), isPressed( false )
     {
-        isPressed = false;
     }
 
     bool check_input()
@@ -146,16 +126,41 @@ public:
     }
 };
 
-template< typename P, typename F >
-KeyboardButton<P,F>* new_keyboard_button( size_t key, P target, F f )
+template< typename P, typename F > 
+class TappedButton : public BasicControllerButton< P, F >
 {
-    return new KeyboardButton<P,F>( key, target, f );
-}
+    typedef BasicControllerButton< P, F > parent;
+
+public:
+    typedef size_t size_type;
+    typedef P   Pointer;
+
+    TappedButton( size_t key, Pointer target, F f )
+        : parent( key, target, f )
+    {
+    }
+
+    bool check_input()
+    {
+        return Keyboard::keyState[ parent::key ];
+    }
+
+    void do_input()
+    {
+        (parent::target->*parent::f)();
+    }
+};
 
 template< typename P, typename F >
 PressedButton<P,F>* new_pressed_button( size_t key, P target, F f )
 {
     return new PressedButton<P,F>( key, target, f );
+}
+
+template< typename P, typename F >
+TappedButton<P,F>* new_tapped_button( size_t key, P target, F f )
+{
+    return new TappedButton<P,F>( key, target, f );
 }
 
 int main()
@@ -190,10 +195,18 @@ int main()
     Terrain* tmp = new Terrain( v, 30 );
     actors.push_back( ActorPointer(tmp) );
 
-    
-    controlers.push_back( ControllerPointer( new_pressed_button (
-        SDLK_a, player, &Tank::move_left
-    ) ) );
+    // Yeah, using separate functions for moving left and right, as well
+    // as needing a pointer to player for each object, is all redundant,
+    // but it works pretty neatly, so should one really complain?
+    controlers.push_back( ControllerPointer ( 
+        new_pressed_button( SDLK_a, player, &Tank::move_left ) 
+    ) );
+    controlers.push_back( ControllerPointer ( 
+        new_pressed_button( SDLK_d, player, &Tank::move_right )
+    ) );
+    controlers.push_back( ControllerPointer ( 
+        new_tapped_button( SDLK_w, player, &Tank::jump )
+    ) );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
