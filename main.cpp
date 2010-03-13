@@ -91,13 +91,13 @@ int main()
     // needing a pointer to player for each object, is all redundant, but it
     // works pretty neatly, so should one really complain?
     controlers.push_back( ControllerPointer ( 
-        new_pressed_button( SDLK_a, player, &move_left ) 
+        new_pressed_button( SDLK_a, *player, &move_left ) 
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_pressed_button( SDLK_d, player, &move_right )
+        new_pressed_button( SDLK_d, *player, &move_right )
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_simple_button( SDLK_w, player, &jump )
+        new_simple_button( SDLK_w, *player, &jump )
     ) );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;

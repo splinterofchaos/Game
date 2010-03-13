@@ -6,7 +6,7 @@ struct Controller
     virtual void do_input() = 0;
     virtual bool check_input() = 0;
 
-    virtual void update()
+    void update()
     {
         if( check_input() )
             do_input();
@@ -24,26 +24,23 @@ struct Keyboard
 };
 Uint8* Keyboard::keyState = 0;
 
-template< typename P, typename F >
+template< typename T, typename F >
 struct BasicControllerButton : public Controller
 {
-    typedef P      Pointer;
-    typedef size_t size_type;
+    size_t key;
+    T& target;
+    F  f;
 
-    size_type key;
-    Pointer target;
-    F f;
-
-    BasicControllerButton( size_type key, Pointer target, F f )
+    BasicControllerButton( size_t key, T& target, F f )
         : key( key ), target( target ), f( f )
     {
     }
 };
 
-template< typename P, typename F > 
-class PressedButton : public BasicControllerButton< P, F >
+template< typename T, typename F > 
+class PressedButton : public BasicControllerButton< T, F >
 {
-    typedef BasicControllerButton< P, F > parent;
+    typedef BasicControllerButton< T, F > parent;
 
     // TODO: For whatever reason, i can't get the typedefs from parent to
     // inherit properly. Maybe this is a g++ problem, maybe my code.
@@ -51,7 +48,7 @@ class PressedButton : public BasicControllerButton< P, F >
     bool isPressed;
 
 public:
-    PressedButton( size_t key, P target, F f )
+    PressedButton( size_t key, T& target, F f )
         : parent( key, target, f ), isPressed( false )
     {
     }
@@ -73,13 +70,13 @@ public:
     }
 };
 
-template< typename P, typename F > 
-class SimpleButton : public BasicControllerButton< P, F >
+template< typename T, typename F > 
+class SimpleButton : public BasicControllerButton< T, F >
 {
-    typedef BasicControllerButton< P, F > parent;
+    typedef BasicControllerButton< T, F > parent;
 
 public:
-    SimpleButton( size_t key, P target, F f )
+    SimpleButton( size_t key, T& target, F f )
         : parent( key, target, f )
     {
     }
@@ -95,6 +92,7 @@ public:
     }
 };
 
+// Helper functions. Honestly, i wonder if there's a better way.
 template< typename P, typename F >
 PressedButton<P,F>* new_pressed_button( size_t key, P target, F f )
 {

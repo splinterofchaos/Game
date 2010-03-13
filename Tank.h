@@ -132,27 +132,27 @@ public:
     value_type half_length() const { return LENGTH_OVER_2 * scale; }
 };
 
-void move_left( Tank* tank, bool start )
+void move_left( Tank& tank, bool start )
 {
     if( start )
-        tank->v.x( tank->v.x() + Tank::NSPEED );
+        tank.v.x( tank.v.x() + Tank::NSPEED );
     else
-        tank->v.x( tank->v.x() + Tank:: SPEED );
+        tank.v.x( tank.v.x() + Tank:: SPEED );
 }
 
-void move_right( Tank* tank, bool start )
+void move_right( Tank& tank, bool start )
 {
     if( start )
-        tank->v.x( tank->v.x() + Tank:: SPEED );
+        tank.v.x( tank.v.x() + Tank:: SPEED );
     else
-        tank->v.x( tank->v.x() + Tank::NSPEED );
+        tank.v.x( tank.v.x() + Tank::NSPEED );
 }
 
-void jump( Tank* tank )
+void jump( Tank& tank )
 {
-    if( tank->surface ) {
-        tank->v.y( tank->v.y() + Tank::JUMP_SPEED );
-        tank->s.y( tank->s.y() - Tank::TOUCHING_RANGE );
-        tank->surface = 0;
+    if( tank.surface ) {
+        tank.v.y( tank.v.y() + Tank::JUMP_SPEED );
+        tank.s.y( tank.s.y() - Tank::TOUCHING_RANGE );
+        tank.surface = 0;
     }
 }
