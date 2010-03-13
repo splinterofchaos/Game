@@ -101,5 +101,5 @@ PressedButton<T,F>* new_pressed_button( size_t key, T& target, F f )
 template< typename T, typename F >
 SimpleButton<T,F>* new_simple_button( size_t key, T& target, F f )
 {
-    return new SimpleButton<P,F>( key, target, f );
+    return new SimpleButton<T,F>( key, target, f );
 }
