@@ -5,6 +5,7 @@ using namespace std;
 #include "math/Vector.h"
 #include "ScopeGuard.h"
 #include "Collision.h"
+#include "Controller.h"
 #include "functional_plus.h"
 
 #include "Actor.h"
@@ -54,119 +55,6 @@ void update_screen()
     glClear( GL_COLOR_BUFFER_BIT );
 }
 
-struct Controller
-{
-    virtual void do_input() = 0;
-    virtual bool check_input() = 0;
-
-    virtual void update()
-    {
-        if( check_input() )
-            do_input();
-    }
-};
-
-struct Keyboard
-{
-    static Uint8* keyState;
-
-    static void refresh()
-    {
-        keyState = SDL_GetKeyState( 0 );
-    }
-};
-Uint8* Keyboard::keyState = 0;
-
-template< typename P, typename F >
-struct BasicControllerButton : public Controller
-{
-    typedef P      Pointer;
-    typedef size_t size_type;
-
-    size_type key;
-    Pointer target;
-    F f;
-
-    BasicControllerButton( size_type key, Pointer target, F f )
-        : key( key ), target( target ), f( f )
-    {
-    }
-};
-
-template< typename P, typename F > 
-class PressedButton : public BasicControllerButton< P, F >
-{
-    typedef BasicControllerButton< P, F > parent;
-
-    bool isPressed;
-
-public:
-    PressedButton( size_t key, P target, F f )
-        : parent( key, target, f ), isPressed( false )
-    {
-    }
-
-    bool check_input()
-    {
-        // Consider revising to meet 1-exit-point principle, or keep it?
-        //if( !isPressed && Keyboard::keyState[ parent::key ] ) {
-        //    isPressed = true;
-        //    return true;
-        //} else if( isPressed && !Keyboard::keyState[ parent::key ] ) {
-        //    isPressed = false;
-        //    return true;
-        //}
-        if( isPressed != Keyboard::keyState[ parent::key ] ) {
-            isPressed = ! isPressed;
-            return true;
-        }
-
-        return false;
-    }
-
-    void do_input()
-    {
-        parent::f( parent::target, isPressed );
-    }
-};
-
-template< typename P, typename F > 
-class TappedButton : public BasicControllerButton< P, F >
-{
-    typedef BasicControllerButton< P, F > parent;
-
-public:
-    typedef size_t size_type;
-    typedef P   Pointer;
-
-    TappedButton( size_type key, Pointer target, F f )
-        : parent( key, target, f )
-    {
-    }
-
-    bool check_input()
-    {
-        return Keyboard::keyState[ parent::key ];
-    }
-
-    void do_input()
-    {
-        parent::f( parent::target );
-    }
-};
-
-template< typename P, typename F >
-PressedButton<P,F>* new_pressed_button( size_t key, P target, F f )
-{
-    return new PressedButton<P,F>( key, target, f );
-}
-
-template< typename P, typename F >
-TappedButton<P,F>* new_tapped_button( size_t key, P target, F f )
-{
-    return new TappedButton<P,F>( key, target, f );
-}
-
 int main()
 {
     // Portably suppresses unused variable compiler warnings.
@@ -199,9 +87,9 @@ int main()
     Terrain* tmp = new Terrain( v, 30 );
     actors.push_back( ActorPointer(tmp) );
 
-    // Yeah, using separate functions for moving left and right, as well
-    // as needing a pointer to player for each object, is all redundant,
-    // but it works pretty neatly, so should one really complain?
+    // Yeah, using separate functions for moving left and right, as well as
+    // needing a pointer to player for each object, is all redundant, but it
+    // works pretty neatly, so should one really complain?
     controlers.push_back( ControllerPointer ( 
         new_pressed_button( SDLK_a, player, &move_left ) 
     ) );
@@ -209,7 +97,7 @@ int main()
         new_pressed_button( SDLK_d, player, &move_right )
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_tapped_button( SDLK_w, player, &jump )
+        new_simple_button( SDLK_w, player, &jump )
     ) );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
