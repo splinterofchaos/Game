@@ -92,14 +92,14 @@ public:
 };
 
 // Helper functions. Honestly, i wonder if there's a better way.
-template< typename P, typename F >
-PressedButton<P,F>* new_pressed_button( size_t key, P target, F f )
+template< typename T, typename F >
+PressedButton<T,F>* new_pressed_button( size_t key, T& target, F f )
 {
-    return new PressedButton<P,F>( key, target, f );
+    return new PressedButton<T,F>( key, target, f );
 }
 
-template< typename P, typename F >
-SimpleButton<P,F>* new_simple_button( size_t key, P target, F f )
+template< typename T, typename F >
+SimpleButton<T,F>* new_simple_button( size_t key, T& target, F f )
 {
     return new SimpleButton<P,F>( key, target, f );
 }
