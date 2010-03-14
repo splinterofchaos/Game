@@ -1,7 +1,7 @@
 
 #include "Actor.h" // For Graphable.
-
-#include <vector>
+#include "Rectangle.h"
+#include "Collision.h"
 
 #pragma once
 
@@ -15,38 +15,13 @@ public:
     typedef parent::vector_type vector_type;
     typedef parent::value_type  value_type;
 
-    Terrain( const vector_type& pos, value_type size_over_2 )
-        : parent( pos ), size_over_2( size_over_2 )
-    {
-        isSurface = true;
-    }
+    Terrain( const vector_type& pos, value_type size_over_2 );
 
-    // This is just a stub, for now. 
-    // TODO: How do i want terrains moving?
-    void move( int quantum )
-    {
-    }
+    void move( int quantum );
 
-    void draw()
-    {
-        glpp::translate( s.x(), s.y(), 0 );
+    void draw();
 
-        glBegin( GL_POLYGON );
-            draw_square( size_over_2 );
-        glEnd();
-
-        glLoadIdentity();
-    }
-
-    std::vector< vector_type > collision_nodes()
-    {
-        return std::vector<vector_type>(); // Obvious stub?
-    }
-
-    void collide( Collision c )
-    {
-        // Do nothing.
-    }
+    void collide( Collision c );
 
     // Rectangle's functions:
     value_type half_length() const { return size_over_2; }
