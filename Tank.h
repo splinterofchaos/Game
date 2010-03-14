@@ -37,8 +37,9 @@ public:
     // Rectangle's functions:
     value_type half_width()  const { return WIDTH_OVER_2  * scale; }
     value_type half_length() const { return LENGTH_OVER_2 * scale; }
-};
 
-void move_left( Tank& tank, bool start );
-void move_right( Tank& tank, bool start );
-void jump( Tank& tank );
+
+    void move_left( bool start );
+    void move_right( bool start );
+    void jump();
+};

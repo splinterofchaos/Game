@@ -77,27 +77,27 @@ void Tank::collide( Collision c )
     }
 }
 
-void move_left( Tank& tank, bool start )
+void Tank::move_left( bool start )
 {
     if( start )
-        tank.v.x( tank.v.x() + Tank::NSPEED );
+        v.x( v.x() + NSPEED );
     else
-        tank.v.x( tank.v.x() + Tank:: SPEED );
+        v.x( v.x() +  SPEED );
 }
 
-void move_right( Tank& tank, bool start )
+void Tank::move_right( bool start )
 {
     if( start )
-        tank.v.x( tank.v.x() + Tank:: SPEED );
+        v.x( v.x() +  SPEED );
     else
-        tank.v.x( tank.v.x() + Tank::NSPEED );
+        v.x( v.x() + NSPEED );
 }
 
-void jump( Tank& tank )
+void Tank::jump()
 {
-    if( tank.surface ) {
-        tank.v.y( tank.v.y() + Tank::JUMP_SPEED );
-        tank.s.y( tank.s.y() - Tank::TOUCHING_RANGE );
-        tank.surface = 0;
+    if( surface ) {
+        v.y( v.y() + JUMP_SPEED );
+        s.y( s.y() - TOUCHING_RANGE );
+        surface = 0;
     }
 }

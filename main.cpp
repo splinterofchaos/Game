@@ -90,14 +90,15 @@ int main()
     // Yeah, using separate functions for moving left and right, as well as
     // needing a pointer to player for each object, is all redundant, but it
     // works pretty neatly, so should one really complain?
+    using std::mem_fun_ref;
     controlers.push_back( ControllerPointer ( 
-        new_pressed_button( SDLK_a, *player, &move_left ) 
+        new_pressed_button( SDLK_a, *player, mem_fun_ref(&Tank::move_left) ) 
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_pressed_button( SDLK_d, *player, &move_right )
+        new_pressed_button( SDLK_d, *player, mem_fun_ref(&Tank::move_right) )
     ) );
     controlers.push_back( ControllerPointer ( 
-        new_simple_button( SDLK_w, *player, &jump )
+        new_simple_button( SDLK_w, *player, mem_fun_ref(&Tank::jump) )
     ) );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
