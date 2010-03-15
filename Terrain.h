@@ -5,7 +5,7 @@
 
 #pragma once
 
-class Terrain : virtual public Actor<float,2>, virtual public Rectangle<float> 
+class Terrain : public Rectangle<float> 
 {
     typedef Actor<float,2> parent;
 

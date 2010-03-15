@@ -1,0 +1,18 @@
+
+INTRODUCTION
+I'm going to be using this file to document my thoughts and what i'm trying to do in the project. 
+
+THE IS_SURFACE PROBLEM
+Tank needs to know if what it's colliding with is a surface, and later will need to know if it's an enemy or whatever. In the future, my objects may need to know various things about an object it is interacting with. 
+
+The current solution is to have a base class with virtual void functions like is_surface. The problem is this that means is_surface has to be known by that base class and future projects will have to modify it, rather than building on top of it. In fact, my whole solution for collision detection has this problem. The popularity in suggesting the visitor pattern as a solution for this issue shows that either (a) there isn't a solution found that is more flexible, or (b) a far greater solution exists; not often suggested because of its complexity or perhaps the use of something frowned upon.
+
+std::map WILL SAVE US!
+
+Component-based programming, wasn't it called? Anyway, look it up! The whole
+is_surface and other types of attributes problem can be solved with
+map["attr"].
+
+What if this is how collision was done as well?
+    if( a.attributes["shape"] == CIRCLE && b.attributes["shape"] == CIRCLE )
+        collide_circle_circle( a, b );

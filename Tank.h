@@ -5,7 +5,7 @@
 
 #pragma once
 
-class Tank : virtual public Actor<float,2>, virtual public Rectangle<float>
+class Tank : public Rectangle<float>
 {
 public:
     // Rectangle is not recognized as a parent because it isn't, functionally.
@@ -29,9 +29,7 @@ public:
     Tank( const vector_type& v, const value_type maxSpeed=999 );
 
     void draw();
-
     void move( int quantum );
-
     void collide( Collision c );
 
     // Rectangle's functions:
