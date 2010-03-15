@@ -7,10 +7,9 @@
 
 class Tank : public Rectangle<float>
 {
-public:
-    // Rectangle is not recognized as a parent because it isn't, functionally.
-    typedef Actor<float,2> parent; 
+    typedef Rectangle<float> parent; 
 
+public:
     static const value_type WIDTH_OVER_2 = 0.5, LENGTH_OVER_2 = 0.25; 
     static const value_type SPEED = 0.11;
     static const value_type JUMP_SPEED = -0.11;
@@ -18,7 +17,8 @@ public:
 
 
     // Needed to avoid odd error caught by g++ when -SPEED used.
-    //  "[references to where -SPEED is used]: undefined reference to `Tank::SPEED'"
+    //  "[references to where -SPEED is used]: undefined reference to
+    //  `Tank::SPEED'"
     static const value_type NSPEED = -0.11; // Negative SPEED.
 
     Terrain* surface;
